@@ -1,0 +1,10 @@
+[
+    {
+      "prompt": "",
+      "negative_prompt": "",
+      "n_images": 255,
+      "fn_name": "lemniscate",
+      "fn_args": {
+      }
+    }
+]
