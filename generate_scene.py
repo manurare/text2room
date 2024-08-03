@@ -23,10 +23,14 @@ def main(args):
     if (not args.input_image_path) or (not os.path.isfile(args.input_image_path)):
         first_image_pil = generate_first_image(args)
     else:
+        depth_file = args.input_image_path.replace("rgb_pano.jpg", "depth_pano.dpt")
+        first_depth = None
+        if os.path.isfile(depth_file):
+            first_depth = read_dpt(depth_file)
         first_image_pil = Image.open(args.input_image_path)
 
     # load pipeline
-    pipeline = Text2RoomPipeline(args, first_image_pil=first_image_pil)
+    pipeline = Text2RoomPipeline(args, first_image_pil=first_image_pil, first_depth=first_depth)
 
     # generate using all trajectories
     offset = 1  # have the start image already
@@ -67,3 +71,43 @@ if __name__ == "__main__":
     parser = get_default_parser()
     args = parser.parse_args()
     main(args)
+
+
+def read_dpt(dpt_file_path):
+    import numpy as np
+    from struct import unpack
+    """read depth map from *.dpt file.
+
+    :param dpt_file_path: the dpt file path
+    :type dpt_file_path: str
+    :return: depth map data
+    :rtype: numpy
+    """
+    TAG_FLOAT = 202021.25  # check for this when READING the file
+
+    ext = os.path.splitext(dpt_file_path)[1]
+
+    assert len(ext) > 0, ('readFlowFile: extension required in fname %s' % dpt_file_path)
+    assert ext == '.dpt', exit('readFlowFile: fname %s should have extension ''.flo''' % dpt_file_path)
+
+    fid = None
+    try:
+        fid = open(dpt_file_path, 'rb')
+    except IOError:
+        print('readFlowFile: could not open %s', dpt_file_path)
+
+    tag = unpack('f', fid.read(4))[0]
+    width = unpack('i', fid.read(4))[0]
+    height = unpack('i', fid.read(4))[0]
+
+    assert tag == TAG_FLOAT, ('readFlowFile(%s): wrong tag (possibly due to big-endian machine?)' % dpt_file_path)
+    assert 0 < width and width < 100000, ('readFlowFile(%s): illegal width %d' % (dpt_file_path, width))
+    assert 0 < height and height < 100000, ('readFlowFile(%s): illegal height %d' % (dpt_file_path, height))
+
+    # arrange into matrix form
+    depth_data = np.fromfile(fid, np.float32)
+    depth_data = depth_data.reshape(height, width)
+
+    fid.close()
+
+    return depth_data

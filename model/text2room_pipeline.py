@@ -42,7 +42,7 @@ from model.utils.utils import (
 
 
 class Text2RoomPipeline(torch.nn.Module):
-    def __init__(self, args, setup_models=True, offset=0, first_image_pil=None, H=512, W=512, start_pose=None):
+    def __init__(self, args, setup_models=True, offset=0, first_image_pil=None, first_depth=None, H=512, W=512, start_pose=None):
         super().__init__()
         # setup (create out_dir, save args)
         self.args = args
@@ -83,11 +83,11 @@ class Text2RoomPipeline(torch.nn.Module):
 
         # save start image if specified
         if first_image_pil is not None:
-            self.setup_start_image(first_image_pil, offset)
+            self.setup_start_image(first_image_pil, offset, first_depth)
         else:
             print("WARN: no start image specified, should call load_mesh() before rendering images!")
 
-    def setup_start_image(self, first_image_pil, offset):
+    def setup_start_image(self, first_image_pil, offset, first_depth=None):
         # save & convert first_image
         self.current_image_pil = first_image_pil
         self.current_image_pil = self.current_image_pil.resize((self.W, self.H))
@@ -436,12 +436,12 @@ class Text2RoomPipeline(torch.nn.Module):
         image_smooth = torch.where(dilated_edges, blur_gaussian, image)
         return image_smooth
 
-    def add_next_image(self, pos, offset, save_files=True, file_suffix=""):
+    def add_next_image(self, pos, offset, save_files=True, depth=None, file_suffix=""):
         # predict & align depth of current image
         predicted_depth = self.predict_depth()
         predicted_depth = self.depth_alignment(predicted_depth)
         predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask)
-        self.predicted_depth = predicted_depth
+        self.predicted_depth = predicted_depth if depth is None else depth
 
         rendered_depth_pil = Image.fromarray(visualize_depth_numpy(self.rendered_depth.cpu().numpy())[0].astype(np.uint8))
         depth_pil = Image.fromarray(visualize_depth_numpy(predicted_depth.cpu().numpy())[0].astype(np.uint8))
