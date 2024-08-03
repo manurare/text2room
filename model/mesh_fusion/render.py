@@ -284,7 +284,7 @@ def remesh_poisson(vertices, colors, faces=None, max_faces_for_poisson=4_000_000
     return vertices, faces, colors
 
 
-def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, mask=None, edge_threshold=-1, surface_normal_threshold=-1, pix_to_face=None, faces=None, vertices=None):
+def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, mask=None, edge_threshold=-1, surface_normal_threshold=-1, pix_to_face=None, faces=None, vertices=None, first_is_erp=False):
     """
     project features to mesh in world space and return (vertices, faces, colors) result by applying simple triangulation from image-structure.
 
@@ -393,7 +393,7 @@ def features_to_world_space_mesh(colors, depth, fov_in_degrees, world_to_cam, ma
 
     # apply surface normal threshold
     use_surface_normal_filter = surface_normal_threshold > -1
-    if use_surface_normal_filter:
+    if use_surface_normal_filter and (W != H*2):
         # construct pix_to_face by exploiting triangulation scheme:
         # (1) get the face_ids for upper_left and lower_right branch
         face_id = torch.arange(faces.shape[1], dtype=torch.long, device=faces.device)  # (P + Q)

@@ -90,12 +90,12 @@ class Text2RoomPipeline(torch.nn.Module):
     def setup_start_image(self, first_image_pil, offset, first_depth=None):
         # save & convert first_image
         self.current_image_pil = first_image_pil
-        self.current_image_pil = self.current_image_pil.resize((self.W, self.H))
+        self.current_image_pil = self.current_image_pil.resize((self.W, self.H)) if first_depth is None else self.current_image_pil
         self.current_image = pil_to_torch(self.current_image_pil, self.args.device)
         save_image(self.current_image_pil, "rgb", offset, self.args.rgb_path)
 
         # predict depth, add 3D structure
-        self.add_next_image(pos=0, offset=offset)
+        self.add_next_image(pos=0, offset=offset, depth=first_depth)
 
         # add to seen poses
         self.seen_poses.append(self.world_to_cam)
@@ -436,12 +436,17 @@ class Text2RoomPipeline(torch.nn.Module):
         image_smooth = torch.where(dilated_edges, blur_gaussian, image)
         return image_smooth
 
-    def add_next_image(self, pos, offset, save_files=True, depth=None, file_suffix=""):
+    def add_next_image(self, pos, offset, save_files=True, file_suffix="", depth=None):
         # predict & align depth of current image
-        predicted_depth = self.predict_depth()
-        predicted_depth = self.depth_alignment(predicted_depth)
-        predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask)
-        self.predicted_depth = predicted_depth if depth is None else depth
+        if depth is None:
+            predicted_depth = self.predict_depth()
+            predicted_depth = self.depth_alignment(predicted_depth)
+            predicted_depth = self.apply_depth_smoothing(predicted_depth, self.inpaint_mask)
+            self.predicted_depth = predicted_depth
+        else:
+            predicted_depth = torch.from_numpy(depth).to(self.current_image.device)
+            self.predicted_depth = predicted_depth
+            self.inpaint_mask = self.inpaint_mask.new_ones(predicted_depth.shape)
 
         rendered_depth_pil = Image.fromarray(visualize_depth_numpy(self.rendered_depth.cpu().numpy())[0].astype(np.uint8))
         depth_pil = Image.fromarray(visualize_depth_numpy(predicted_depth.cpu().numpy())[0].astype(np.uint8))

@@ -62,7 +62,47 @@ def get_camera(world_to_cam, fov_in_degrees):
     return camera
 
 
+def erp2sph(erp_points, erp_image_height=None, sph_modulo=False):
+    # 0) the ERP image size
+    if erp_image_height == None:
+        height = np.shape(erp_points)[1]
+        width = np.shape(erp_points)[2]
+    else:
+        height = erp_image_height
+        width = height * 2
+
+    erp_points_x = erp_points[0]
+    erp_points_y = erp_points[1]
+
+    # 1) point location to theta and phi
+    points_theta = erp_points_x * (2 * np.pi / width) + np.pi / width - np.pi
+    points_phi = -(erp_points_y * (np.pi / height) + np.pi / height * 0.5) + 0.5 * np.pi
+
+    points_theta = np.where(points_theta == np.pi,  -np.pi, points_theta)
+    points_phi = np.where(points_phi == -0.5 * np.pi, 0.5 * np.pi, points_phi)
+
+    return np.stack((-points_theta, points_phi))
+
+
+def sph2car(theta, phi, radius=1.0):
+    # points_cartesian_3d = np.array.zeros((theta.shape[0],3),float)
+    x = radius * np.cos(phi) * np.sin(theta)
+    z = radius * np.cos(phi) * np.cos(theta)
+    y = radius * np.sin(phi)
+
+    return np.stack((x, y, z), axis=0)
+
+
+def erp2world(H, W, depth):
+    xy_depth = get_pixel_grids(H, W, reverse=False).numpy()[:-1]
+    theta, phi = erp2sph(xy_depth, H)
+    world = sph2car(theta, phi, radius=depth.cpu().flatten().numpy())
+    return torch.from_numpy(world).to(depth.device)
+
+
 def unproject_points(world_to_cam, fov_in_degrees, depth, H, W):
+    if (W == H*2):
+        return erp2world(H, W, depth)
     camera = get_camera(world_to_cam, fov_in_degrees)
 
     xy_depth = get_pixel_grids(H, W, reverse=True).to(depth.device)

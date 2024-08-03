@@ -113,6 +113,46 @@ def _rot_left(i, steps=60, ty=0, rx=0):
     return get_extrinsics(R, T)
 
 
+def _lemniscate(i, n_steps=255, **args):
+    # Parameters
+    a = 0.5  # Scale of the lemniscate
+
+    # Create theta values
+    theta1 = np.linspace(0.5*np.pi, 0.75*np.pi, 25)
+    theta2 = np.linspace(0.75*np.pi, 1.25*np.pi, 80)
+    theta3 = np.linspace(1.25*np.pi, 1.75*np.pi, 45)
+    theta4 = np.linspace(1.75*np.pi, 2.25*np.pi, 80)
+    theta5 = np.linspace(2.25*np.pi, 2.5*np.pi, 25)
+    theta = np.concatenate((theta1, theta2, theta3, theta4, theta5))
+
+    # Convert to Cartesian coordinates
+    x = a * np.cos(theta) / (np.sin(theta)**2 + 1)
+    z = a * np.cos(theta) * np.sin(theta) / (np.sin(theta)**2 + 1)
+    y = a * 0.2 * np.cos(4*theta)
+    Cs = np.stack((x, y, z)).T
+
+    dx_dtheta = -a*(np.sin(theta) * (np.sin(theta) ** 2 + 2*np.cos(theta)**2 + 1)) / (np.sin(theta)**2 + 1)**2
+    dz_dtheta = -a*(np.sin(theta)**4 + np.sin(theta)**2 + (np.sin(theta)**2-1)*np.cos(theta)**2) / (np.sin(theta)**2 + 1)**2
+
+    lookat = np.stack((dx_dtheta, np.zeros_like(x), dz_dtheta)).T
+    lookat = lookat / np.linalg.norm(lookat, axis=1, keepdims=True)
+
+    UP = np.array([0, 1, 0])[None, :]
+    right = np.cross(UP, lookat)
+    right = right / np.linalg.norm(right, axis=1, keepdims=True)
+    up = np.cross(lookat, right)
+    up /= np.linalg.norm(up, axis=1, keepdims=True)
+
+    Rs = np.concatenate((right, up, lookat), axis=1).reshape(-1, 3, 3)
+
+    R = torch.from_numpy(Rs[i]) 
+    T = -(R @ torch.from_numpy(Cs[i]))
+
+    RT = torch.cat([R, T[:, None]], dim=-1).to("cpu")  # RT is [4,4]
+    RT = torch.cat([RT, torch.tensor([[0, 0, 0, 1]]).to(RT)], dim=0)
+    return RT
+
+
 def _back_and_forth(i, steps=20, txmax=0, txmin=0, tymax=0, tymin=0, tzmax=0, tzmin=0, rxmax=0, rxmin=0, rymax=0, rymin=0, rzmax=0, rzmin=0):
     tx_delta = (txmax - txmin) / (steps // 2)
     ty_delta = (tymax - tymin) / (steps // 2)
@@ -210,6 +250,9 @@ def _double_sphere_rot_xz(i, steps, radius=4.0, height=0.0, phi=20.0):
 #######################
 # PUBLIC TRAJECTORIES #
 #######################
+
+def lemniscate(**args):
+    return _config_fn(_lemniscate, **args)
 
 
 def forward(height=0, rot=0, txmax=2):

@@ -22,7 +22,7 @@ def get_default_parser():
 
     # PROJECTION CONFIG
     group = parser.add_argument_group("projection")
-    group.add_argument('--fov', required=False, default=55.0, type=float, help="FOV in degrees for all images")
+    group.add_argument('--fov', required=False, default=79.70955707897667, type=float, help="FOV in degrees for all images")
     group.add_argument('--blur_radius', required=False, default=0, type=float, help="if render_mesh: blur radius from pytorch3d rasterization")
 
     # STABLE DIFFUSION CONFIG
