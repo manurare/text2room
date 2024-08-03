@@ -48,13 +48,11 @@ def load_sd_inpaint(args):
 
     return pipe
 
-
 def pil_to_torch(img, device, normalize=True):
     img = torch.tensor(np.array(img), device=device).permute(2, 0, 1)
     if normalize:
         img = img / 255.0
     return img
-
 
 def generate_first_image(args):
     model_path = os.path.join(args.models_path, "stable-diffusion-2-1")

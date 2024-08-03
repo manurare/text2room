@@ -84,6 +84,27 @@ def erp2sph(erp_points, erp_image_height=None, sph_modulo=False):
     return np.stack((-points_theta, points_phi))
 
 
+def car2sph(points_car, min_radius=1e-10):
+    radius = np.linalg.norm(points_car, axis=1)
+
+    valid_list = radius > min_radius  # set the 0 radius to origin.
+
+    theta = np.zeros((points_car.shape[0]), float)
+    theta[valid_list] = np.arctan2(points_car[:, 0][valid_list], points_car[:, 2][valid_list])
+
+    phi = np.zeros((points_car.shape[0]), float)
+    phi[valid_list] = -np.arcsin(np.divide(points_car[:, 1][valid_list], radius[valid_list]))
+
+    return np.stack((theta, phi), axis=1)
+
+def sph2erp(theta, phi, erp_image_height, sph_modulo=False):
+
+    erp_image_width = 2 * erp_image_height
+    erp_x = (theta + np.pi) / (2.0 * np.pi / erp_image_width) - 0.5
+    erp_y = (-phi + 0.5 * np.pi) / (np.pi / erp_image_height) - 0.5
+    return erp_x, erp_y
+
+
 def sph2car(theta, phi, radius=1.0):
     # points_cartesian_3d = np.array.zeros((theta.shape[0],3),float)
     x = radius * np.cos(phi) * np.sin(theta)
