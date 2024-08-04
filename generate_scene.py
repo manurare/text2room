@@ -63,10 +63,17 @@ def main(args):
     if (not args.input_image_path) or (not os.path.isfile(args.input_image_path)):
         first_image_pil = generate_first_image(args)
     else:
-        depth_file = args.input_image_path.replace("rgb_pano.jpg", "depth_pano.dpt")
         first_depth = None
-        if os.path.isfile(depth_file):
-            first_depth = read_dpt(depth_file)
+        if os.path.isfile(args.input_depth_path):
+            ext = os.path.splitext(args.input_depth_path)[-1]
+            if ext == ".dpt":
+                first_depth = read_dpt(args.input_depth_path)
+            elif ext == ".npy":
+                import numpy as np
+                first_depth = np.load(args.input_depth_path)
+            else:
+                raise "unknown depth format"
+
         first_image_pil = Image.open(args.input_image_path)
 
     # load pipeline
