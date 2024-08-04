@@ -46,7 +46,9 @@ with torch.no_grad():
         metrics["ssim"].append(ssim(gt, pred).item())
         metrics["lpips"].append(lpips_alex(gt, pred).item())
 
-print({k:np.mean(v) for k,v in metrics.items()})
+means = {k:np.mean(v) for k,v in metrics.items()}
+print(",".join(["exp_name"] + [*means.keys()]))
+print(",".join(map(str, [*means.values()])))
 
 
 
