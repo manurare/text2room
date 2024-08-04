@@ -126,13 +126,13 @@ def _lemniscate(i, n_steps=255, **args):
     theta = np.concatenate((theta1, theta2, theta3, theta4, theta5))
 
     # Convert to Cartesian coordinates
-    x = a * np.cos(theta) / (np.sin(theta)**2 + 1)
-    z = a * np.cos(theta) * np.sin(theta) / (np.sin(theta)**2 + 1)
+    z = a * np.cos(theta) / (np.sin(theta)**2 + 1)
+    x = a * np.cos(theta) * np.sin(theta) / (np.sin(theta)**2 + 1)
     y = a * 0.2 * np.cos(4*theta)
     Cs = np.stack((x, y, z)).T
 
-    dx_dtheta = -a*(np.sin(theta) * (np.sin(theta) ** 2 + 2*np.cos(theta)**2 + 1)) / (np.sin(theta)**2 + 1)**2
-    dz_dtheta = -a*(np.sin(theta)**4 + np.sin(theta)**2 + (np.sin(theta)**2-1)*np.cos(theta)**2) / (np.sin(theta)**2 + 1)**2
+    dz_dtheta = -a*(np.sin(theta) * (np.sin(theta) ** 2 + 2*np.cos(theta)**2 + 1)) / (np.sin(theta)**2 + 1)**2
+    dx_dtheta = -a*(np.sin(theta)**4 + np.sin(theta)**2 + (np.sin(theta)**2-1)*np.cos(theta)**2) / (np.sin(theta)**2 + 1)**2
 
     lookat = np.stack((dx_dtheta, np.zeros_like(x), dz_dtheta)).T
     lookat = lookat / np.linalg.norm(lookat, axis=1, keepdims=True)
@@ -145,7 +145,7 @@ def _lemniscate(i, n_steps=255, **args):
 
     Rs = np.concatenate((right, up, lookat), axis=1).reshape(-1, 3, 3)
 
-    R = torch.from_numpy(Rs[i]) 
+    R = torch.from_numpy(Rs[i]) #torch.from_numpy(np.eye(3)) #
     T = -(R @ torch.from_numpy(Cs[i]))
 
     RT = torch.cat([R, T[:, None]], dim=-1).to("cpu")  # RT is [4,4]
