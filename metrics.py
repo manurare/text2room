@@ -20,7 +20,7 @@ args = parser.parse_args()
 settings_file = os.path.join(args.experiment, "settings.json")
 settings = json.load(open(settings_file, "r"))
 
-input_rgb_files = os.path.join(os.path.dirname(settings["input_image_path"]), "{:05}_rgb.jpg")
+input_rgb_files = os.path.join(os.path.dirname(settings["input_image_path"]), "{:05}_rgb.png")
 input_depth_files = os.path.join(os.path.dirname(settings["input_image_path"]), "{:05}_depth.dpt")
 rgb_path = settings["rgb_path"]
 
