@@ -20,21 +20,20 @@ args = parser.parse_args()
 settings_file = os.path.join(args.experiment, "settings.json")
 settings = json.load(open(settings_file, "r"))
 
-input_rgb_fn = settings["input_image_path"]
-input_depth_fn = settings["input_image_path"].replace("frame", "depth")
-input_depth_fn = input_depth_fn.replace(".jpg", ".dpt")
+input_rgb_files = os.path.join(os.path.dirname(settings["input_image_path"]), "{:05}_rgb.jpg")
+input_depth_files = os.path.join(os.path.dirname(settings["input_image_path"]), "{:05}_depth.dpt")
 rgb_path = settings["rgb_path"]
 
 gts = []
 preds = []
 with torch.no_grad():
-    for i in tqdm(range(1, 256), desc="reading data"):
-        rgb = np.asarray(Image.open(input_rgb_fn.replace("000000", f"{i:06}"))) / 255.
-        depth = read_dpt(input_depth_fn.replace("000000", f"{i:06}"))
+    for i in tqdm(range(0, 255), desc="reading data"):
+        rgb = np.asarray(Image.open(input_rgb_files.format(i))) / 255.
+        depth = read_dpt(input_depth_files.format(i))
         Image.fromarray((rgb*255).astype(np.uint8)).save(os.path.join(rgb_path, f"rgb_{i:04}_gt.png"))
         gts.append(torch.from_numpy(rgb).permute(2,0,1).type(torch.float32).clone().contiguous())
 
-        pred = Image.open(os.path.join(rgb_path, f"rgb_{i:04}.png"))
+        pred = Image.open(os.path.join(rgb_path, f"rgb_{i+1:04}.png"))
         pred = pil_to_torch(pred, device="cpu").clone().contiguous()
         preds.append(pred)
 
