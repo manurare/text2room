@@ -81,7 +81,7 @@ def erp2sph(erp_points, erp_image_height=None, sph_modulo=False):
     points_theta = np.where(points_theta == np.pi,  -np.pi, points_theta)
     points_phi = np.where(points_phi == -0.5 * np.pi, 0.5 * np.pi, points_phi)
 
-    return np.stack((-points_theta, points_phi))
+    return np.stack((points_theta, points_phi))
 
 
 def car2sph(points_car, min_radius=1e-10):
@@ -111,7 +111,7 @@ def sph2car(theta, phi, radius=1.0):
     z = radius * np.cos(phi) * np.cos(theta)
     y = radius * np.sin(phi)
 
-    return np.stack((x, y, z), axis=0)
+    return np.stack((-x, y, z), axis=0)
 
 
 def erp2world(H, W, depth):
