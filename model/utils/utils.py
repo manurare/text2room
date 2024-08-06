@@ -78,6 +78,13 @@ def save_image(image, prefix, idx, outdir):
     image.save(file_out)
     return file_with_ext
 
+def save_raw(image, prefix, idx, outdir):
+    filename = f"{prefix}_{idx:04}"
+    ext = "npy"
+    file_with_ext = f"{filename}.{ext}"
+    file_out = os.path.join(outdir, file_with_ext)
+    np.save(image, file_out)
+    return file_with_ext
 
 def save_rgbd(image, depth, prefix, idx, outdir):
     filename = f"{prefix}_{idx:04}"

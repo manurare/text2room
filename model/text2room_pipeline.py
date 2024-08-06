@@ -33,6 +33,7 @@ from model.trajectories.convert_to_nerf_convention import convert_pose_to_nerf_c
 from model.utils.utils import (
     visualize_depth_numpy,
     save_image,
+    save_raw,
     pil_to_torch,
     save_rgbd,
     load_sd_inpaint,
@@ -453,6 +454,7 @@ class Text2RoomPipeline(torch.nn.Module):
         if save_files:
             save_image(rendered_depth_pil, f"rendered_depth{file_suffix}", offset + pos, self.args.depth_path)
             save_image(depth_pil, f"depth{file_suffix}", offset + pos, self.args.depth_path)
+            save_raw(predicted_depth.cpu().numpy().squeeze(), f"depth{file_suffix}", offset + pos, self.args.depth_path)
             save_rgbd(self.current_image_pil, depth_pil, f'rgbd{file_suffix}', offset + pos, self.args.rgbd_path)
 
         # remove masked-out faces. If we use erosion in the mask it means those points will be removed.
