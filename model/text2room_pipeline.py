@@ -125,14 +125,14 @@ class Text2RoomPipeline(torch.nn.Module):
 
         self.args.out_path = os.path.join(self.args.out_path, self.args.exp_name, prompt_folder_name)
 
-        if self.args.input_image_path:
-            file_name = self.args.input_image_path.split("/")[-1]
-            self.args.out_path = os.path.join(self.args.out_path, file_name)
-        else:
-            self.args.out_path = os.path.join(self.args.out_path, "no_input_image_file")
+        # if self.args.input_image_path:
+        #     file_name = self.args.input_image_path.split("/")[-1]
+        #     self.args.out_path = os.path.join(self.args.out_path, file_name)
+        # else:
+        #     self.args.out_path = os.path.join(self.args.out_path, "no_input_image_file")
 
-        now_str = datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%fZ')
-        self.args.out_path = os.path.join(self.args.out_path, now_str)
+        # now_str = datetime.now().strftime('%Y-%m-%d_%H:%M:%S.%fZ')
+        # self.args.out_path = os.path.join(self.args.out_path, now_str)
         os.makedirs(self.args.out_path, exist_ok=True)
         self.args.rgb_path = os.path.join(self.args.out_path, "rgb")
         self.args.rgbd_path = os.path.join(self.args.out_path, "rgbd")
