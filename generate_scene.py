@@ -73,6 +73,7 @@ def main(args):
                 first_depth = np.load(args.input_depth_path)
             else:
                 raise "unknown depth format"
+            first_depth[first_depth <= 0] = np.max(first_depth)
 
         first_image_pil = Image.open(args.input_image_path)
 
