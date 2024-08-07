@@ -65,5 +65,8 @@ means = {k:np.mean(v) for k,v in metrics.items()}
 print(",".join(["exp_name"] + [*means.keys()]))
 print(",".join(map(str, [*means.values()])))
 
+results_file = os.path.join(args.exp_renders_dir, "results.json")
+with open(results_file, 'w') as fp:
+    json.dump(means, fp, indent=True)
 
 
