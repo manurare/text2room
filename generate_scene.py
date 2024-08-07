@@ -7,6 +7,7 @@ from model.utils.opt import get_default_parser
 from model.utils.utils import save_poisson_mesh, generate_first_image
 
 import torch
+import numpy as np
 
 
 def read_dpt(dpt_file_path):
@@ -69,7 +70,6 @@ def main(args):
             if ext == ".dpt":
                 first_depth = read_dpt(args.input_depth_path)
             elif ext == ".npy":
-                import numpy as np
                 first_depth = np.load(args.input_depth_path)
             else:
                 raise "unknown depth format"
